@@ -3,12 +3,14 @@ package main
 import (
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
+	"math"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	FixedXOR("a", "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736")
+	fmt.Printf("%s", FixedXOR("a", "QuickBrownFoxJumpsOverTheLazyDog"))
 }
 
 //Challenge 1.1
@@ -66,4 +68,11 @@ func ScorePlaintext(plaintext []byte) int {
 		score += BoolToInt(strings.ContainsAny(string(plaintext[i]), TopEngChar))
 	}
 	return score
+}
+
+//Challenge 1.5
+func RepeatXOR(plaintext string, key string) string {
+	key = strings.Repeat(key, 1+int(math.Ceil(float64(len(plaintext)/len(key)))))
+	key = key[0:len(plaintext)]
+	return FixedXOR(plaintext, key)
 }
