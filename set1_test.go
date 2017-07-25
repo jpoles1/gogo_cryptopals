@@ -5,6 +5,9 @@ import (
 	"testing"
 )
 
+func TestMisc(t *testing.T) {
+	main()
+}
 func Test1(t *testing.T) {
 	teststr := "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d"
 	validstr := ("SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t")
@@ -29,6 +32,14 @@ func Test5(t *testing.T) {
 	key := fmt.Sprintf("%2x", "ICE")
 	validhash := "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f"
 	if RepeatXOR(plaintext, key) != validhash {
+		t.Fail()
+	}
+}
+func Test6(t *testing.T) {
+	str1 := fmt.Sprintf("%2x", "this is a test")
+	str2 := fmt.Sprintf("%2x", "wokka wokka!!!")
+	fmt.Println(HamDist(str1, str2))
+	if HamDist(str1, str2) != 37 {
 		t.Fail()
 	}
 }

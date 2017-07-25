@@ -9,9 +9,7 @@ import (
 	"strings"
 )
 
-func main() {
-	fmt.Printf("%s", FixedXOR("a", "QuickBrownFoxJumpsOverTheLazyDog"))
-}
+func main() {}
 
 //Challenge 1.1
 func HexToBase64(hexval string) string {
@@ -75,4 +73,21 @@ func RepeatXOR(plaintext string, key string) string {
 	key = strings.Repeat(key, 1+int(math.Ceil(float64(len(plaintext)/len(key)))))
 	key = key[0:len(plaintext)]
 	return FixedXOR(plaintext, key)
+}
+
+//Challenge 1.6
+func HamDist(hex1 string, hex2 string) int {
+	bytes1, _ := hex.DecodeString(hex1)
+	bytes2, _ := hex.DecodeString(hex2)
+	dist := 0
+	if len(bytes1) != len(bytes2) {
+		panic("HamDist cannot handle inputs of different lengths.")
+	}
+	for i := 0; i < len(bytes1); i++ {
+		dist += strings.Count(fmt.Sprintf("%b", bytes1[i]^bytes2[i]), "1")
+	}
+	return dist
+}
+func XORCrusher() {
+	return
 }
