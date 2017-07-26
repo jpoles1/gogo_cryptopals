@@ -1,7 +1,11 @@
 package main
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
+	"io/ioutil"
+	"strings"
 	"testing"
 )
 
@@ -25,7 +29,8 @@ func Test2(t *testing.T) {
 }
 func Test3(t *testing.T) {
 	hash := "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
-	fmt.Println(XORBreaker(hash))
+	key, plaintext, _ := XORBreaker(hash)
+	fmt.Printf("XOR Breaker Test\nKey: %s\nPlaintext: %s\n%s\n", key, plaintext, strings.Repeat("-", 40))
 }
 func Test5(t *testing.T) {
 	plaintext := fmt.Sprintf("%2x", "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal")
@@ -36,10 +41,18 @@ func Test5(t *testing.T) {
 	}
 }
 func Test6(t *testing.T) {
+	//Testing the Hamming Distance Algorithm
 	str1 := fmt.Sprintf("%2x", "this is a test")
 	str2 := fmt.Sprintf("%2x", "wokka wokka!!!")
-	fmt.Println(HamDist(str1, str2))
-	if HamDist(str1, str2) != 37 {
+	bytes1, _ := hex.DecodeString(str1)
+	bytes2, _ := hex.DecodeString(str2)
+	if HamDist(bytes1, bytes2) != 37 {
 		t.Fail()
 	}
+	//Testing the XORCrusher
+	dat, err := ioutil.ReadFile("6.txt")
+	check(err)
+	filebytes, err := base64.StdEncoding.DecodeString(string(dat))
+	check(err)
+	XORCrusher(filebytes)
 }

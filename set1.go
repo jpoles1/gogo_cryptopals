@@ -10,6 +10,11 @@ import (
 )
 
 func main() {}
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
 
 //Challenge 1.1
 func HexToBase64(hexval string) string {
@@ -76,9 +81,7 @@ func RepeatXOR(plaintext string, key string) string {
 }
 
 //Challenge 1.6
-func HamDist(hex1 string, hex2 string) int {
-	bytes1, _ := hex.DecodeString(hex1)
-	bytes2, _ := hex.DecodeString(hex2)
+func HamDist(bytes1 []byte, bytes2 []byte) int {
 	dist := 0
 	if len(bytes1) != len(bytes2) {
 		panic("HamDist cannot handle inputs of different lengths.")
@@ -88,6 +91,29 @@ func HamDist(hex1 string, hex2 string) int {
 	}
 	return dist
 }
-func XORCrusher() {
-	return
+func XORCrusher(hashbytes []byte) string {
+	var low_normdist int
+	var low_keysize int
+	for i := 2; i < 40; i++ {
+		k := 4
+		normdist1 := HamDist(hashbytes[0:i], hashbytes[i+1:2*i+1]) / i
+		normdist2 := HamDist(hashbytes[k:k+i], hashbytes[k+i+1:k+2*i+1]) / i
+		normdist := (normdist1 + normdist2) / 2
+		if low_keysize == 0 || normdist < low_normdist {
+			low_normdist = normdist
+			low_keysize = i
+		}
+	}
+	fmt.Printf("Keysize: %d\n", low_keysize)
+	keyparts := make([]string, low_keysize)
+	for i := 0; i < low_keysize; i++ {
+		hashparts := make([]byte, len(hashbytes)/low_keysize)
+		for j := 0; j < len(hashbytes)/low_keysize; j++ {
+			hashparts[j] = hashbytes[i*j]
+		}
+		fmt.Println(hashparts)
+		prob_keychar, _, _ := XORBreaker(string(hashparts))
+		keyparts[i] = prob_keychar
+	}
+	return strings.Join(keyparts, "")
 }
