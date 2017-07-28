@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -23,9 +24,7 @@ func HexToBase64(hexval string) string {
 }
 
 //Challenge 1.2
-func FixedXOR(hex1 string, hex2 string) string {
-	bytes1, _ := hex.DecodeString(hex1)
-	bytes2, _ := hex.DecodeString(hex2)
+func FixedXOR(bytes1 []byte, bytes2 []byte) string {
 	if len(bytes1) != len(bytes2) {
 		panic("FixedXOR cannot handle inputs of different lengths.")
 	}
@@ -38,14 +37,15 @@ func FixedXOR(hex1 string, hex2 string) string {
 }
 
 //Challenge 1.3
-func XORBreaker(hash string) (string, string, int) {
+func XORBreaker(hash []byte) (string, string, int) {
 	topkey := ""
 	topplain := ""
 	topscore := 0
 	for i := 0; i < 127; i++ {
 		keychar := strconv.FormatInt(int64(i), 16)
 		key := strings.Repeat(keychar, len(hash)/len(keychar))
-		plaintext, _ := hex.DecodeString(FixedXOR(hash, key))
+		plaintext, _ := hex.DecodeString(FixedXOR(hash, []byte(key)))
+		fmt.Println(string(plaintext))
 		score := ScorePlaintext(plaintext)
 		if score > topscore {
 			topscore = score
@@ -74,8 +74,8 @@ func ScorePlaintext(plaintext []byte) int {
 }
 
 //Challenge 1.5
-func RepeatXOR(plaintext string, key string) string {
-	key = strings.Repeat(key, 1+int(math.Ceil(float64(len(plaintext)/len(key)))))
+func RepeatXOR(plaintext []byte, key []byte) string {
+	key = bytes.Repeat(key, 1+int(math.Ceil(float64(len(plaintext)/len(key)))))
 	key = key[0:len(plaintext)]
 	return FixedXOR(plaintext, key)
 }
@@ -111,8 +111,8 @@ func XORCrusher(hashbytes []byte) string {
 		for j := 0; j < len(hashbytes)/low_keysize; j++ {
 			hashparts[j] = hashbytes[i*j]
 		}
-		fmt.Println(hashparts)
-		prob_keychar, _, _ := XORBreaker(string(hashparts))
+		fmt.Println(string(hashparts))
+		prob_keychar, _, _ := XORBreaker(hashparts)
 		keyparts[i] = prob_keychar
 	}
 	return strings.Join(keyparts, "")
