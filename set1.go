@@ -23,7 +23,7 @@ func HexToBase64(hexval string) string {
 }
 
 //Challenge 1.2
-func FixedXOR(bytes1 []byte, bytes2 []byte) string {
+func FixedXOR(bytes1 []byte, bytes2 []byte) []byte {
 	if len(bytes1) != len(bytes2) {
 		panic("FixedXOR cannot handle inputs of different lengths.")
 	}
@@ -32,7 +32,7 @@ func FixedXOR(bytes1 []byte, bytes2 []byte) string {
 	for i := 0; i < len(bytes1); i++ {
 		bytes3[i] = bytes1[i] ^ bytes2[i]
 	}
-	return hex.EncodeToString(bytes3)
+	return bytes3
 }
 
 //Challenge 1.3
@@ -43,7 +43,7 @@ func XORBreaker(hash []byte) (string, string, int) {
 	for i := 31; i < 127; i++ {
 		keychar := string(rune(i))
 		key := strings.Repeat(keychar, len(hash)/len(keychar))
-		plaintext, _ := hex.DecodeString(FixedXOR(hash, []byte(key)))
+		plaintext := FixedXOR(hash, []byte(key))
 		score := ScorePlaintext(plaintext)
 		if score > topscore {
 			topscore = score
@@ -64,13 +64,18 @@ func ScorePlaintext(plaintext []byte) int {
 	TopEngChar := "ETAOINSHRDLU"
 	var score int
 	for i := 0; i < len(plaintext); i++ {
-		score += BoolToInt(strings.ContainsAny(string(plaintext[i]), TopEngChar))
+		//score += BoolToInt(strings.ContainsAny(string(plaintext[i]), TopEngChar))
+		if strings.ContainsAny(string(plaintext[i]), TopEngChar) {
+			for j := 0; j < len(TopEngChar); j++ {
+				score += (len(TopEngChar) - j) * BoolToInt(strings.Contains(string(plaintext[i]), string(TopEngChar[j])))
+			}
+		}
 	}
 	return score
 }
 
 //Challenge 1.5
-func RepeatXOR(plaintext []byte, key []byte) string {
+func RepeatXOR(plaintext []byte, key []byte) []byte {
 	key = bytes.Repeat(key, 1+int(math.Ceil(float64(len(plaintext)/len(key)))))
 	key = key[0:len(plaintext)]
 	return FixedXOR(plaintext, key)
@@ -88,28 +93,32 @@ func HamDist(bytes1 []byte, bytes2 []byte) int {
 	return dist
 }
 func XORCrusher(hashbytes []byte) string {
-	var lowNormdist int
+	var lowNormdist float64
 	var lowKeysize int
-	for i := 2; i < 40; i++ {
-		k := 4
-		normdist1 := HamDist(hashbytes[0:i], hashbytes[i+1:2*i+1]) / i
-		normdist2 := HamDist(hashbytes[k:k+i], hashbytes[k+i+1:k+2*i+1]) / i
-		normdist := (normdist1 + normdist2) / 2
+	for i := 2; i <= 40; i++ {
+		k := 2*i + 2
+		normdist1 := HamDist(hashbytes[0:i], hashbytes[i+1:2*i+1])
+		normdist2 := HamDist(hashbytes[k:k+i], hashbytes[k+i+1:k+1+2*i])
+		//fmt.Println(0, i, "-", i+1, 2*i+1, "-", k, k+i, "-", k+i+1, k+1+2*i)
+		normdist := float64(normdist1+normdist2) / float64(i)
 		if lowKeysize == 0 || normdist < lowNormdist {
 			lowNormdist = normdist
 			lowKeysize = i
 		}
+		//fmt.Println(i, "-", normdist, lowNormdist, lowKeysize)
 	}
 	fmt.Printf("Keysize: %d\n", lowKeysize)
 	keyparts := make([]string, lowKeysize)
 	for i := 0; i < lowKeysize; i++ {
 		hashparts := make([]byte, len(hashbytes)/lowKeysize)
 		for j := 0; j < len(hashbytes)/lowKeysize; j++ {
-			hashparts[j] = hashbytes[i*j]
+			if lowKeysize*j+i < len(hashbytes) {
+				hashparts[j] = hashbytes[lowKeysize*j+i]
+			}
 		}
-		//fmt.Println(string(hashparts))
 		probKeychar, _, _ := XORBreaker(hashparts)
 		keyparts[i] = probKeychar
 	}
+	fmt.Println(keyparts)
 	return strings.Join(keyparts, "")
 }
